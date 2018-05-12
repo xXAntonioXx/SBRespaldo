@@ -1,4 +1,3 @@
-;funciones.asm
 sys_exit        equ     1
 sys_read        equ     3
 sys_write       equ     4
@@ -11,7 +10,6 @@ stdout          equ     1   ;salida estandar (pantalla)
 stderr          equ     3   ;salida de error estandar
 O_RDONLY        equ     0   ;open for read only
 O_RDWR          equ     1   ;open for read and write
-
 
 
 ;Recibe direccion de cadena a medir longitud en EAX
@@ -177,7 +175,7 @@ copystring:
     cmp bl,0xA        ;comparamos con salto de linea
     je .salto
 
-    mov byte[ESI+ECX*4],bl ;movemos un caracter al array
+    mov byte[ESI+ECX],bl ;movemos un caracter al array
     cmp byte[eax],0      ;comparamos el byte que esta en la direccion a la que apunta eax con 0
     jz .finalizate
 
@@ -191,25 +189,43 @@ copystring:
     pop ecx
     ret
 
+;; ------------------------------------
+;; itoa recibe un entero 
+;; y lo convierte en cadena de texto
+;; recibe entero en EAX
+;; recibe direccion de cadena en ESI
+;; ------------------------------------
+itoa:
+    push ebx  ; preservamos ebx
+    push ecx  ; preservamos ecx
+    push edx  ; preservamos edx
+    push esi  ; preservamos esi
+    mov ebx, 10     ;vamos a dividir por 10
+    mov ecx,  0     ;nuestro contador en  0
+    push ecx        ;mandamos 0 al stack (fin de cadena)
+    inc ecx
 
+.dividir:
+    inc ecx         ;incrementamos nuestro contador
+    mov edx,  0     ; limpiamos EDX para dividir
+    idiv ebx         ;dividimos EAX entre EBX
+    add edx, 0x30   ;agregamos 48 (para obtener digitos de 0-9 en ASCII)
+    push edx        ;enviamos el residuo al stack    
+    cmp eax, 0      ;checamos si el residuo es 0
+    je .fuera       ;si es 0, salimos del ciclo
+    jmp .dividir    ;seguimos obteniendo digitos
 
+.fuera:
+    mov ebx,0       ;limpiamos ebx
 
-;es para sacar el contenido del archivo y guardarlo en la direccion del buffer
-
-agregarDato:
-    call salida
-    mov eax,delteme
-    call sprintLF
-    ret
-
-generarLinea:
-    call salida
-
-generarCurva:
-    call salida
-
-mostrarDatos:
-    call salida
-
-guardarArchivo:
-    call salida
+.guardar:
+    pop eax         ;traemos un digito del stack
+    mov byte[esi+ebx],al   ;movemos el digito a memoria
+    inc ebx         ;incrementamos contador
+    cmp ebx,ecx     ;comparamos con la cuenta de digitos
+    jne .guardar    ;si no son iguales, obtenemos otro digito del stack
+    pop esi         ; restauramos esi 
+    pop edx         ; restauramos edx
+    pop ecx         ; restauramos ecx    
+    pop ebx         ; restauramos ebx
+    ret             ; y regresa
