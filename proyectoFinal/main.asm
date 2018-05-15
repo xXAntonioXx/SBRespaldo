@@ -1,3 +1,9 @@
+;integrantes de equipo
+;	Alfredo Murillo Casas
+;	Jose Antonio Gonzalez Munguia
+;	Eduardo Varela
+
+
 %include 'funciones_basicas.asm'
 %include 'instruccion.asm'
 

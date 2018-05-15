@@ -20,7 +20,7 @@ section .bss
     numero_recivido resb 4
 
     CadenaImprimir resb 1024
-    CadenaFinal resb 1024
+    CadenaFinal resb 100
     CadenaImprimirLen equ $-CadenaImprimir 
     CadenaFinallong equ $-CadenaFinal
 
@@ -113,43 +113,24 @@ guardarArchivo:
     mov edx,CadenaFinal
     mov eax,edx
     call sprintLF
-    push eax
-    push ebx
-    push ecx
-    ;esto crea el archivo
-    mov eax,sys_creat
-    mov ebx,archivo
-    mov ecx,511
-    int 80h
-    ;aqui se abre el archivo
-    mov eax,sys_open
-    mov ebx,archivo
-    mov ecx,O_RDWR
-    int 80h
-    mov ebx,eax
-    ;y esto escribe en el archivo
-    mov eax,sys_write
-    mov edx,CadenaFinallong
-    mov ecx,CadenaFinal
-    int 80h
-    ;ahora sincronizar
-    mov eax,sys_sync
-    int 80h
+    ;push eax
+    ;push ebx
+    ;push ecx
+    call crescArchivo
 
-    ;finalmente se cierra el archivo
-    mov eax,sys_close
-    int 80h
+    ;esto es una prueba
+    mov eax,mensajePrueba
+    call sprintLF
+    ;mov eax,edx
+    ;call sprintLF
+    ;jmp salida
 
-    cmp eax,0
-    jle salida
-
-    mov ebx,eax
+    ;mov ebx,eax
 
     ;ya terminada la apertura
-    pop ecx
-    pop ebx
-    pop eax
-
+    ;pop ecx
+    ;pop ebx
+    ;pop eax
     call mostrarMenu
 
 
@@ -220,50 +201,59 @@ gcOperacion:                                                        ;
 
 ;todo este bloque pertenece a guardar el archivo
 sacarNumeros:
-    cmp ecx,edi
-    jl convertir
+    cmp ecx,edi ;ecx es el contador del arreglo 
+    jl convertir ;mientras no sea igual se hace la ejecucion
     ret
 convertir:
-    mov eax,[ebp+ecx*4]
-    call itoa
-    ;cmp ebx,0
-    ;jg after
+    mov eax,[ebp+ecx*4] ;movemos a eax el primer numero de resultados
+    call itoa   ;este es convertido en una cadena que se almacena en cadena imprimir
     
-    mov eax,esi
+    mov eax,esi ; en esi tenemos el buffer temporal de la cadena
+    ;mov byte[edx+ecx*4],al
     ;push esi
     ;mov esi,arregloStream
-    ;call copystring
-    mov [edx+ebx],eax
-    ;pop esi
-    push eax
-    call strlen
-    add ebx,eax
-    pop eax
-    call sprintLF
-
-    inc ecx
-    mov eax,ebx
-    call iprintLF
-    jmp sacarNumeros
-
-;after:
-;   mov eax,esi
-;   push eax
-;   call strlen
-;   add ebx,eax
-;   pop eax
-;   call sprintLF
-;   inc ecx
-;   jmp sacarNumeros
-
-;abrirArchivo:
- ;   mov eax,sys_open
-  ;  mov ebx,archivo
-   ; mov ecx,O_RDWR
-    ;int 80h
-
-    ;cmp eax,0
-    ;jle salida
-
+    
+    push eax ;en eax tendremos la cantidad de caracteres asi que salvamos primero su direccion
+    call strlen ;obtenemos la cantidad de caracteres
     ;mov ebx,eax
-    ;ret
+    ;add ebx,1
+    ;aqui intentamos concatenar
+   
+    ;aqui terminal el intento
+    add ebx,eax ;a ebx se le agrega la cantidad de caracteres 
+    pop eax ;recuperamos la direccion original que estaba en eax
+    call sprintLF ;la imprimimos por ser bandera
+
+    inc ecx ;nos vamos al siguiente numero
+    mov eax,ebx ;imprimimos el contador de de ebx como bandera
+    call iprintLF 
+    jmp sacarNumeros ;se llama asi misma
+
+;pasar concatenando letra por letra de ESI al CadenaFinal
+
+
+crescArchivo:
+    ;esto crea el archivo
+    mov eax,sys_creat
+    mov ebx,archivo
+    mov ecx,511
+    int 80h
+    ;aqui se abre el archivo
+    mov eax,sys_open
+    mov ebx,archivo
+    mov ecx,O_RDWR
+    int 80h
+    mov ebx,eax
+    ;y esto escribe en el archivo
+    mov eax,sys_write
+    mov edx,CadenaFinallong
+    mov ecx,CadenaFinal
+    int 80h
+    ;ahora sincronizar
+    mov eax,sys_sync
+    int 80h
+
+    ;finalmente se cierra el archivo
+    mov eax,sys_close
+    int 80h
+    ret
