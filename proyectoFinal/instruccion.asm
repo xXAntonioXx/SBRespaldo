@@ -222,6 +222,7 @@ convertir:
     ;aqui terminal el intento
     add ebx,eax ;a ebx se le agrega la cantidad de caracteres 
     pop eax ;recuperamos la direccion original que estaba en eax
+    mov [edx+ebp],esi
     call sprintLF ;la imprimimos por ser bandera
 
     inc ecx ;nos vamos al siguiente numero
